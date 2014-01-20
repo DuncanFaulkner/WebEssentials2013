@@ -12,6 +12,7 @@ namespace MadsKristensen.EditorExtensions
     [Export(typeof(ITaggerProvider))]
     [TagType(typeof(IOutliningRegionTag))]
     [ContentType("JavaScript")]
+    [ContentType("TypeScript")]
     internal sealed class OutliningTaggerProvider : ITaggerProvider
     {
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
@@ -28,6 +29,11 @@ namespace MadsKristensen.EditorExtensions
         ITextBuffer buffer;
         ITextSnapshot snapshot;
         List<Region> regions;
+        static readonly Type jsTaggerType = typeof(Microsoft.VisualStudio.JSLS.JavaScriptLanguageService).Assembly.GetType("Microsoft.VisualStudio.JSLS.Classification.Tagger");
+        static char[] PunctuationCharacters = Enumerable.Range(1, char.MaxValue)
+                                                        .Where(x => !(char.IsLetterOrDigit((char)x)))
+                                                        .Select(i => (char)i)
+                                                        .ToArray();
 
         public JavaScriptOutliningTagger(ITextBuffer buffer)
         {
@@ -55,9 +61,9 @@ namespace MadsKristensen.EditorExtensions
                 if (region.StartLine <= endLineNumber && region.EndLine >= startLineNumber)
                 {
                     var startLine = currentSnapshot.GetLineFromLineNumber(region.StartLine);
-                    string lineText = startLine.GetText().Trim();
 
-                    if (!lineText.Contains("function"))
+                    // Note: if we revoke this condition, clicking (+) button 'twice' would expand the region while Ctrl+M,M works as expected.
+                    if (!HasReservedBlockKeywords(startLine, "function", "module", "constructor", "void", "class"))
                     {
                         var endLine = currentSnapshot.GetLineFromLineNumber(region.EndLine);
                         var contentSpan = new SnapshotSpan(startLine.Start + region.StartOffset, endLine.End);
@@ -65,6 +71,24 @@ namespace MadsKristensen.EditorExtensions
                         yield return new TagSpan<IOutliningRegionTag>(contentSpan, new OutliningRegionTag(false, false, ellipsis, contentSpan.GetText()));
                     }
                 }
+            }
+        }
+
+        public static bool HasReservedBlockKeywords(ITextSnapshotLine start, params string[] nativelySupportedTokens)
+        {
+            try
+            {
+                var tagger = start.Snapshot.TextBuffer.Properties.GetProperty<ITagger<ClassificationTag>>(jsTaggerType);
+                var classifications = tagger.GetTags(new NormalizedSnapshotSpanCollection(start.Extent));
+
+                return classifications.Any(tag => !tag.Tag.ClassificationType.IsOfType("comment") &&
+                                                   tag.Tag.ClassificationType.IsOfType("keyword") &&
+                                                   nativelySupportedTokens.Contains(tag.Span.GetText()));
+            }
+            catch
+            {
+                return start.GetText().Trim().Split(PunctuationCharacters)
+                            .Any(word => nativelySupportedTokens.Contains(word));
             }
         }
 

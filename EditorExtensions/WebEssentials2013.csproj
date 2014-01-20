@@ -38,6 +38,7 @@
     <ZipPackageCompressionLevel>Normal</ZipPackageCompressionLevel>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>Source.extension.vsixmanifest</ApplicationManifest>
@@ -59,7 +60,7 @@
     <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>
     </AssemblyOriginatorKeyFile>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -86,9 +87,9 @@
     <CopyVsixExtensionLocation>bin/release/new folder</CopyVsixExtensionLocation>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AjaxMin, Version=5.6.5100.19196, Culture=neutral, PublicKeyToken=21ef50ce11b5d80f, processorArchitecture=MSIL">
+    <Reference Include="AjaxMin, Version=5.7.5124.21494, Culture=neutral, PublicKeyToken=21ef50ce11b5d80f, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\AjaxMin.5.6.5100.19204\lib\net40\AjaxMin.dll</HintPath>
+      <HintPath>..\packages\AjaxMin.5.7.5124.21499\lib\net40\AjaxMin.dll</HintPath>
     </Reference>
     <Reference Include="CssSorter">
       <HintPath>..\CssSorter.dll</HintPath>
@@ -162,9 +163,6 @@
     <Reference Include="Microsoft.Web.Editor, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(DevEnvDir)\CommonExtensions\Microsoft\Web\Editor\Microsoft.Web.Editor.dll</HintPath>
-    </Reference>
-    <Reference Include="Minimatch">
-      <HintPath>..\packages\Minimatch.1.0.0.0\lib\portable-net40+sl50+wp80+win\Minimatch.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.5.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -342,6 +340,10 @@
     <Compile Include="Classifications\Markdown\MarkdownOutlineTagger.cs" />
     <Compile Include="Classifications\Markdown\MarkdownLanguageSupport.cs" />
     <Compile Include="Classifications\Markdown\MarkdownParser.cs" />
+    <Compile Include="Classifications\SASS\SassClassificationTypes.cs" />
+    <Compile Include="Classifications\SASS\SassClassifier.cs" />
+    <Compile Include="Classifications\SASS\SassClassifierProvider.cs" />
+    <Compile Include="Classifications\SASS\SassContentTypeDefinition.cs" />
     <Compile Include="Classifications\WebVTT\WebVttContentTypeDefinition.cs" />
     <Compile Include="Classifications\WebVTT\WebVttClassificationTypes.cs" />
     <Compile Include="Classifications\WebVTT\WebVttClassifier.cs" />
@@ -356,6 +358,35 @@
     <Compile Include="Classifications\SVG\SvgContentTypeDefinition.cs" />
     <Compile Include="Commands\AppCache\AppCacheCreationListener.cs" />
     <Compile Include="Commands\CoffeeScript\CoffeeScriptCreationListener.cs" />
+    <Compile Include="Commands\JavaScript\CommentIndentationCommandTarget.cs" />
+    <Compile Include="Commands\JavaScript\CommentCompletionCommandTarget.cs" />
+    <Compile Include="Commands\TypeScript\TypeScriptFindReferencesCommandTarget.cs" />
+    <Compile Include="Commands\TypeScript\TypeScriptCreationListener.cs" />
+    <Compile Include="Commands\TypeScript\TsLintProjectRunner.cs" />
+    <Compile Include="Commands\TypeScript\TsHintRunner.cs" />
+    <Compile Include="Compilers\Lint\LintConfigEncodingFix.cs" />
+    <Compile Include="Compilers\Lint\TsLintCompiler.cs" />
+    <Compile Include="MenuItems\SpriteImage.cs" />
+    <Compile Include="MenuItems\CompressImage.cs" />
+    <Compile Include="MenuItems\TsLint.cs" />
+    <Compile Include="Optimization\Compression\CompressionResult.cs" />
+    <Compile Include="Optimization\Compression\ImageCompressor.cs" />
+    <Compile Include="Optimization\Sprite\ExportFormat.cs" />
+    <Compile Include="Optimization\Sprite\SpriteGenerator.cs" />
+    <Compile Include="Optimization\Sprite\SpriteDocument.cs" />
+    <Compile Include="Optimization\Sprite\SpriteFragment.cs" />
+    <Compile Include="Optimization\Sprite\SpriteExporter.cs" />
+    <Compile Include="Settings\OptionPages\TsLint.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="SmartTags\CSS\Actions\OptimizeImageSmartTagAction.cs" />
+    <Compile Include="SmartTags\CSS\Providers\OptimizeImageSmartTagProvider.cs" />
+    <Compile Include="SmartTags\HTML\OptimizeImageSmartTag.cs" />
+    <Compile Include="Commands\Shared\PasteImageCommandTarget.cs" />
+    <Compile Include="Commands\Shared\WebEditorsCreationListener.cs" />
+    <Compile Include="Commands\TypeScript\TypeScriptSmartIndentCommandTarget.cs" />
+    <Compile Include="Commands\TypeScript\TypeScriptTypeThroughControllerProvider.cs" />
+    <Compile Include="Commands\TypeScript\TypeThroughController.cs" />
     <Compile Include="Commands\WebVTT\WebVttCreationListener.cs" />
     <Compile Include="Commands\Shared\CommentCommandTarget.cs" />
     <Compile Include="Commands\CoffeeScript\EnterIndentationCommandTarget.cs" />
@@ -365,6 +396,10 @@
     <Compile Include="Commands\Code\IntellisenseType.cs" />
     <Compile Include="Commands\CommandExceptionFilter.cs" />
     <Compile Include="Commands\HTML\HtmlSaveListener.cs" />
+    <Compile Include="Compilers\Lint\JsHintCompiler.cs" />
+    <Compile Include="Compilers\LESS\LessCompiler.cs" />
+    <Compile Include="Compilers\SASS\SassProjectCompiler.cs" />
+    <Compile Include="Compilers\SASS\SassCompiler.cs" />
     <Compile Include="Completion\CSS\CompletionProviders\MediaTypeCompletionProvider.cs" />
     <Compile Include="Completion\CSS\CompletionProviders\MediaValueCompletionProvider.cs" />
     <Compile Include="Completion\CSS\CompletionProviders\MediaCompletionProvider.cs" />
@@ -373,6 +408,7 @@
     <Compile Include="Completion\CSS\ContextProviders\MediaFeatureContextProvider.cs" />
     <Compile Include="Completion\CSS\ContextProviders\VariableContextProvider.cs" />
     <Compile Include="Completion\HTML\InputIdAttributeCompletion.cs" />
+    <Compile Include="Completion\JavaScript\JsDocCompletionSource.cs" />
     <Compile Include="Completion\Markdown\MarkdownCompletionFilter.cs" />
     <Compile Include="DropTargets\HtmlImageDrop.cs" />
     <Compile Include="Helpers\Disposable.cs" />
@@ -384,6 +420,7 @@
     <Compile Include="Margin\IcedCoffeeScriptMargin.cs" />
     <Compile Include="Compilers\NodeExecutorBase.cs" />
     <Compile Include="Compilers\ProjectCompilerBase.cs" />
+    <Compile Include="Margin\SassMargin.cs" />
     <Compile Include="Margin\SvgMargin.cs" />
     <Compile Include="Margin\TypeScriptMargin.cs" />
     <Compile Include="MenuItems\AddIntellisenseFile.cs" />
@@ -404,7 +441,6 @@
     <Compile Include="Commands\HTML\SurroundWithTarget.cs" />
     <Compile Include="Commands\HTML\EnterFormatCommandTarget.cs" />
     <Compile Include="Commands\HTML\ZenCodingCommandTarget.cs" />
-    <Compile Include="Commands\JavaScript\JsHintIgnoreList.cs" />
     <Compile Include="Commands\JavaScript\ReferenceTagGoToDefinition.cs" />
     <Compile Include="Commands\JavaScript\NodeModuleGoToDefinition.cs" />
     <Compile Include="Commands\JavaScript\JavaScriptCreationListener.cs">
@@ -414,9 +450,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Commands\JavaScript\JavaScriptSaveListener.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Commands\JavaScript\JsHintCompiler.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Commands\JavaScript\JsHintProjectRunner.cs">
@@ -511,19 +544,22 @@
     <Compile Include="MenuItems\ReferenceJs.cs" />
     <Compile Include="NavigateTo\CSS\CssGoToLineTag.cs" />
     <Compile Include="NavigateTo\CSS\CssGoToLineProvider.cs" />
-    <Compile Include="Options\CodeGeneration.cs">
+    <Compile Include="Settings\OptionPages\CodeGeneration.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Options\Html.cs">
+    <Compile Include="Settings\OptionPages\Html.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Options\Markdown.cs">
+    <Compile Include="Settings\OptionPages\Sass.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Options\TypeScript.cs">
+    <Compile Include="Settings\OptionPages\Markdown.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Options\UnusedCssOptions.cs">
+    <Compile Include="Settings\OptionPages\TypeScript.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Settings\OptionPages\BrowserLinkOptions.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Classifications\IconRegistration.cs" />
@@ -612,8 +648,6 @@
     <Compile Include="Compilers\CompilerResult.cs" />
     <Compile Include="Margin\MarkdownMargin.cs" />
     <Compile Include="Compilers\LESS\LessProjectCompiler.cs" />
-    <Compile Include="Compilers\ScriptRunnerBase.cs" />
-    <Compile Include="Compilers\LESS\LessCompiler.cs" />
     <Compile Include="Helpers\OptionHelpers.cs" />
     <Compile Include="Margin\CoffeeScriptMargin.cs" />
     <Compile Include="Margin\MarginBase.cs" />
@@ -621,7 +655,7 @@
     <Compile Include="Margin\EditorMarginFactory.cs" />
     <Compile Include="MenuItems\BundleFiles.cs" />
     <Compile Include="MenuItems\BuildMenu.cs" />
-    <Compile Include="MenuItems\MarkdownStylesheet.cs" />
+    <Compile Include="MenuItems\Markdown.cs" />
     <Compile Include="MenuItems\SolutionColors.cs" />
     <Compile Include="MenuItems\ProjectSettings.cs" />
     <Compile Include="MenuItems\JsHint.cs" />
@@ -629,24 +663,24 @@
     <Compile Include="MenuItems\Diff.cs" />
     <Compile Include="MenuItems\Transform.cs" />
     <Compile Include="NavigateTo\CSS\CssGoToLineProviderFactory.cs" />
-    <Compile Include="Options\CoffeeScript.cs">
+    <Compile Include="Settings\OptionPages\CoffeeScript.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Options\JavaScript.cs">
+    <Compile Include="Settings\OptionPages\JavaScript.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Options\Less.cs">
+    <Compile Include="Settings\OptionPages\Less.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Options\ProjectSettingsStore.cs" />
-    <Compile Include="Options\ProjectSettingsTextViewListener.cs" />
-    <Compile Include="Options\JsHint.cs">
+    <Compile Include="Settings\ProjectSettingsStore.cs" />
+    <Compile Include="Settings\ProjectSettingsTextViewListener.cs" />
+    <Compile Include="Settings\OptionPages\JsHint.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Options\Css.cs">
+    <Compile Include="Settings\OptionPages\Css.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Options\General.cs">
+    <Compile Include="Settings\OptionPages\General.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="QuickInfo\ImageHtml\ImageQuickInfo.cs" />
@@ -676,10 +710,10 @@
     </Compile>
     <Compile Include="Schemas\Browsers\BrowserStore.cs" />
     <Compile Include="Schemas\Browsers\BrowserSchemaFilter.cs" />
-    <Compile Include="Schemas\ColorPaletteProvider.cs" />
-    <Compile Include="Schemas\CssSchemaUpdater.cs" />
-    <Compile Include="Schemas\ModernizrProvider.cs" />
-    <Compile Include="Schemas\XmlColorPaletteProvider.cs" />
+    <Compile Include="Schemas\CSS\ColorPaletteProvider.cs" />
+    <Compile Include="Schemas\CSS\CssSchemaUpdater.cs" />
+    <Compile Include="Schemas\CSS\ModernizrProvider.cs" />
+    <Compile Include="Schemas\CSS\XmlColorPaletteProvider.cs" />
     <Compile Include="SmartTags\CSS\Actions\LessExtractVariableSmartTagAction.cs" />
     <Compile Include="SmartTags\CSS\Actions\SortSmartTagAction.cs" />
     <Compile Include="SmartTags\CSS\Actions\UpdateEmbedSmartTagAction.cs" />
@@ -731,10 +765,11 @@
     <Compile Include="SmartTags\CSS\Actions\EmbedSmartTagAction.cs" />
     <Compile Include="SmartTags\CSS\CssSmartTagger.cs" />
     <Compile Include="Helpers\Css\CssItemCollector.cs" />
-    <Compile Include="Options\WebEssentialsSettings.cs" />
+    <Compile Include="Settings\WebEssentialsSettings.cs" />
     <Compile Include="Validation\HTML\OpenGraphPrefixValidator.cs" />
     <Compile Include="Validation\HTML\ItemTypeValidator.cs" />
     <Compile Include="Validation\LESS\Providers\ImportOnceErrorTagProvider.cs" />
+    <Compile Include="Validation\SASS\Filters\SassErrorFilter.cs" />
     <None Include="PreBuildTask.cs" />
     <Content Include="Resources\Icons\Bundle.ico">
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -746,6 +781,9 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Resources\Icons\Git.ico">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="Resources\Icons\Jigsaw.ico">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Resources\Icons\WebVTT.ico">
@@ -763,6 +801,18 @@
     </Content>
     <Content Include="Resources\Images\WebEssentials2012logo.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="Resources\Tools\gifsicle.exe">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="Resources\Tools\jpegtran.exe">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="Resources\Tools\optipng.exe">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="Resources\Tools\pngout.exe">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Snippets\snippets.pkgdef">
@@ -859,7 +909,6 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Resource Include="Resources\Images\extract.png" />
-    <EmbeddedResource Include="Resources\Scripts\jshint-2.4.0.js" />
     <EmbeddedResource Include="Resources\Scripts\AngularController.js" />
     <Resource Include="Resources\Images\delete.png" />
     <Resource Include="Resources\Images\browserlink.png" />
@@ -868,8 +917,19 @@
     <Resource Include="Resources\Images\jsonfile.png" />
     <None Include="Resources\Images\Browser Pause Button.png" />
     <None Include="Resources\Images\Browser Record Button.png" />
-    <Content Include="Resources\nodejs\node.exe" />
-    <Content Include="Resources\Scripts\es5-shim.min.js">
+    <Content Include="Resources\nodejs\node.exe">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="Resources\settings-defaults\.jshintrc">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="Resources\settings-defaults\tslint.json">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="Resources\Scripts\jshint-node-reporter.js">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="Resources\Scripts\tslintFormatter.js">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Resource Include="Resources\Images\graph_id.png" />
@@ -877,12 +937,15 @@
     <Resource Include="Resources\Images\graph_class.png" />
     <Resource Include="Resources\Images\graph_parent.png" />
     <Resource Include="Resources\Images\sort.png" />
-    <None Include="Source.extension.vsixmanifest" />
-    <Resource Include="Resources\Images\vsgallery.png" />
-    <Content Include="Schemas\css-we-settings.xml">
+    <Content Include="Resources\Tools\png.cmd">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="Schemas\WE-Palette.css">
+    <None Include="Source.extension.vsixmanifest" />
+    <Resource Include="Resources\Images\vsgallery.png" />
+    <Content Include="Schemas\CSS\css-we-settings.xml">
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="Schemas\CSS\WE-Palette.css">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Resource Include="Resources\Images\Browsers\s.png" />
@@ -958,8 +1021,10 @@
   -->
   <UsingTask TaskName="MadsKristensen.EditorExtensions.PreBuildTask" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
     <Task>
+      <Reference Include="Microsoft.CSharp" />
       <Reference Include="System.IO.Compression" />
       <Reference Include="System.IO.Compression.FileSystem" />
+      <Reference Include="System.Web.Helpers" />
       <Code Language="cs" Source="PreBuildTask.cs" />
     </Task>
   </UsingTask>
@@ -967,22 +1032,19 @@
     <MadsKristensen.EditorExtensions.PreBuildTask />
     <!-- Include newly downloaded files now ... -->
     <ItemGroup>
-      <Content Include="Resources\nodejs\node.exe; Resources\nodejs\node_modules\less\lib\**; Resources\nodejs\node_modules\less\bin\**">
+      <!-- Exclude LESS & SASS because they have too many extra files; usea whitelist instead-->
+      <!-- Mocha comes from some package that forgot about "devDependencies"; Jade comes from Mocha -->
+      <Content Include="Resources\nodejs\tools\**" Exclude="&#xD;&#xA; **\node-sass\**; **\less\**; &#xD;&#xA;               **\mocha\**; **\jade\**; &#xD;&#xA;               **\*.md; **\*.markdown; **\*.html; **\*.txt; **\LICENSE; **\README; **\CHANGELOG; **\CNAME; **\*.old; **\*.patch; **\*.ico; &#xD;&#xA;               **\*.json; **\.*; **\Makefile.*; **\Rakefile; **\*.yml; &#xD;&#xA;               **\test.*; **\generate-*; &#xD;&#xA;               **\*.min.js; **\*-min.js; &#xD;&#xA;               **\media\**; **\images\**; **\man\**; &#xD;&#xA;               **\.bin\**; **\benchmark\**; **\build\**; **\scripts\**; &#xD;&#xA;               **\vendor\**; &#xD;&#xA;               **\test\**; **\tst\**; **\tests\**; **\testing\**; &#xD;&#xA;               **\examples\**; **\example\**; **\tools\**\tools\**">
         <IncludeInVSIX>true</IncludeInVSIX>
       </Content>
-      <Content Include="Resources\nodejs\node_modules\less\node_modules\**" Exclude="**\test\**; **\tst\**; **\tests\**; **\examples\**">
+      <Content Include="Resources\nodejs\tools\node_modules\node-sass\sass.js; Resources\nodejs\tools\node_modules\node-sass\bin\node-sass; Resources\nodejs\tools\node_modules\node-sass\lib\**; Resources\nodejs\tools\node_modules\node-sass\bin\win32-ia32-*\**; Resources\nodejs\tools\node_modules\tslint\**">
         <IncludeInVSIX>true</IncludeInVSIX>
       </Content>
-      <Content Include="Resources\nodejs\node.exe; Resources\nodejs\node_modules\coffee-script\lib\**; Resources\nodejs\node_modules\coffee-script\bin\**">
+      <Content Include="Resources\nodejs\tools\node_modules\less\lib\**; Resources\nodejs\tools\node_modules\less\bin\**">
         <IncludeInVSIX>true</IncludeInVSIX>
       </Content>
-      <Content Include="Resources\nodejs\node_modules\coffee-script\node_modules\**" Exclude="**\test\**; **\tst\**; **\tests\**; **\examples\**">
-        <IncludeInVSIX>true</IncludeInVSIX>
-      </Content>
-      <Content Include="Resources\nodejs\node.exe; Resources\nodejs\node_modules\iced-coffee-script\lib\**; Resources\nodejs\node_modules\iced-coffee-script\bin\**">
-        <IncludeInVSIX>true</IncludeInVSIX>
-      </Content>
-      <Content Include="Resources\nodejs\node_modules\iced-coffee-script\node_modules\**" Exclude="**\test\**; **\tst\**; **\tests\**; **\examples\**">
+      <!-- Explicitly include JSON files that are actually needed at runtime-->
+      <Content Include="Resources\nodejs\tools\node_modules\htmlparser2\lib\entities\**; Resources\nodejs\tools\node_modules\jshint\package.json;">
         <IncludeInVSIX>true</IncludeInVSIX>
       </Content>
     </ItemGroup>

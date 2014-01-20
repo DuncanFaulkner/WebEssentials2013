@@ -7,6 +7,7 @@
       <Word>MadsKristensen</Word>
       <Word>Gzip</Word>
       <Word>Js</Word>
+      <Word>Ts</Word>
       <Word>Equiv</Word>
       <Word>Utils</Word>
       <Word>Microdata</Word>
@@ -18,8 +19,10 @@
       <Word>Intellisense</Word>
       <Word>Modernizr</Word>
       <Word>Htmlx</Word>
+      <Word>param</Word>
       <Word>Prev</Word>
       <Word>Svg</Word>
+      <Word>png</Word>
       <Word>og</Word>
       <Word>ogp</Word>
       <Word>px</Word>
@@ -32,6 +35,7 @@
       <Word>SLaks</Word>
       <Word>src</Word>
       <Word>JsHint</Word>
+      <Word>TsLint</Word>
       <Word>woff</Word>
       <Word>eot</Word>
       <Word>ttf</Word>
@@ -44,19 +48,23 @@
       <Word>mkd</Word>
       <Word>mkdn</Word>
       <Word>mdwn</Word>
+      <Word>mmd</Word>
+      <Word>fileOverview</Word>
+      <Word>memberOf</Word>
+      <Word>Scss</Word>
     </Recognized>
     <DiscreteExceptions>
       <Term>CoffeeScript</Term>
       <Term>TypeScript</Term>
       <Term>CodeName</Term>
       <Term>JsHint</Term>
+      <Term>TsLint</Term>
       <Term>madskristensen</Term>
       <Term>MadsKristensen</Term>
     </DiscreteExceptions>
   </Words>
   <Acronyms>
     <CasingExceptions>
-      <Acronym>Js</Acronym>
     </CasingExceptions>
   </Acronyms>
 </Dictionary>

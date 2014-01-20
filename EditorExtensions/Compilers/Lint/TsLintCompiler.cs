@@ -1,0 +1,48 @@
+﻿using System;
+using System.Globalization;
+using System.IO;
+
+namespace MadsKristensen.EditorExtensions
+{
+    public class TsLintCompiler : JsHintCompiler
+    {
+        private static readonly string _compilerPath = Path.Combine(WebEssentialsResourceDirectory, @"nodejs\tools\node_modules\tslint\bin\tslint");
+        private static readonly string _tsLintFormatterDirectory = Path.Combine(WebEssentialsResourceDirectory, @"Scripts");
+        private const string _tsLintFormatter = "tslint";
+        private const string _settingsName = "tslint.json";
+
+        protected override string ServiceName
+        {
+            get { return "TsLint"; }
+        }
+        protected override string CompilerPath
+        {
+            get { return _compilerPath; }
+        }
+
+        protected override string GetArguments(string sourceFileName, string targetFileName)
+        {
+            GetOrCreateGlobalSettings(_settingsName); // Ensure that default settings exist
+
+            return String.Format(CultureInfo.CurrentCulture, "--formatters-dir \"{0}\" --format \"{1}\" --config \"{2}\" --file \"{3}\""
+                               , _tsLintFormatterDirectory
+                               , _tsLintFormatter
+                               , FindLocalSettings(sourceFileName) ?? GetOrCreateGlobalSettings("tslint.json")
+                               , sourceFileName);
+        }
+
+        private static string FindLocalSettings(string sourcePath)
+        {
+            string dir = Path.GetDirectoryName(sourcePath);
+
+            while (!File.Exists(Path.Combine(dir, _settingsName)))
+            {
+                dir = Path.GetDirectoryName(dir);
+                if (String.IsNullOrEmpty(dir))
+                    return null;
+            }
+
+            return Path.Combine(dir, _settingsName);
+        }
+    }
+}

@@ -24,6 +24,17 @@ namespace MadsKristensen.EditorExtensions
             OleMenuCommand menuCommand = new OleMenuCommand((s, e) => RunJsHint(), commandId);
             menuCommand.BeforeQueryStatus += menuCommand_BeforeQueryStatus;
             _mcs.AddCommand(menuCommand);
+
+            CommandID edit = new CommandID(CommandGuids.guidDiffCmdSet, (int)CommandId.EditGlobalJsHint);
+            OleMenuCommand editCommand = new OleMenuCommand((s, e) => EditGlobalJsHintFile(), edit);
+            _mcs.AddCommand(editCommand);
+        }
+
+        private void EditGlobalJsHintFile()
+        {
+            string fileName = JsHintCompiler.GetOrCreateGlobalSettings(".jshintrc");
+
+            _dte.ItemOperations.OpenFile(fileName);
         }
 
         private List<string> files;

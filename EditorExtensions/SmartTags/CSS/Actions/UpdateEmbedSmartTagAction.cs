@@ -3,6 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Windows.Media.Imaging;
 using Microsoft.VisualStudio.Text;
+using Microsoft.Web.Editor;
 
 namespace MadsKristensen.EditorExtensions
 {
@@ -29,7 +30,7 @@ namespace MadsKristensen.EditorExtensions
 
         public override void Invoke()
         {
-            string filePath = ProjectHelpers.ToAbsoluteFilePath(_path, ProjectHelpers.GetActiveFile());
+            string filePath = ProjectHelpers.ToAbsoluteFilePath(_path, _span.TextBuffer.GetFileName());
             ApplyChanges(filePath);
         }
 

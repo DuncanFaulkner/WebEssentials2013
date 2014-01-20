@@ -46,7 +46,7 @@ namespace MadsKristensen.EditorExtensions.SmartTags.HTML
     internal class Base64DecodeSmartTagSmartTag : HtmlSmartTag
     {
         public Base64DecodeSmartTagSmartTag(ITextView textView, ITextBuffer textBuffer, ElementNode element)
-            : base(textView, textBuffer, element, HtmlSmartTagPosition.ElementName)
+            : base(textView, textBuffer, element, HtmlSmartTagPosition.StartTag)
         { }
 
         protected override IEnumerable<ISmartTagAction> GetSmartTagActions(ITrackingSpan span)
@@ -71,7 +71,7 @@ namespace MadsKristensen.EditorExtensions.SmartTags.HTML
 
                 var fileName = FileHelpers.ShowDialog(extension);
 
-                if (!string.IsNullOrEmpty(fileName) && ReverseEmbedSmartTagAction.TrySaveFile(src.Value, fileName))
+                if (!string.IsNullOrEmpty(fileName) && FileHelpers.SaveDataUriToFile(src.Value, fileName))
                 {
                     using (EditorExtensionsPackage.UndoContext((DisplayText)))
                         ReplaceUrlValue(fileName, textBuffer, src);

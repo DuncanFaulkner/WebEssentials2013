@@ -84,7 +84,7 @@ namespace MadsKristensen.EditorExtensions
             if (string.IsNullOrEmpty(text))
                 return null;
 
-            text = text.Trim(new[] { '\'', '"' });
+            text = text.Trim(new[] { '\'', '"', '~' });
 
             if (text.StartsWith("//", StringComparison.Ordinal))
                 text = "http:" + text;
@@ -116,7 +116,7 @@ namespace MadsKristensen.EditorExtensions
                 }
                 else if (url.Contains("://") || File.Exists(url))
                 {
-                    return BitmapFrame.Create(new Uri(url));
+                    return BitmapFrame.Create(new Uri(url), BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
                 }
             }
             catch { }

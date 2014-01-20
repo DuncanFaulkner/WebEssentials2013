@@ -10,6 +10,8 @@ namespace MadsKristensen.EditorExtensions
 {
     internal abstract class ProjectCompilerBase
     {
+        private string[] _ignorePaths = new[] { @"\bin\", @"\obj\", @"\app_data\" };
+
         protected abstract string ServiceName { get; }
         protected abstract string CompileToExtension { get; }
         protected abstract string CompileToLocation { get; }
@@ -21,7 +23,9 @@ namespace MadsKristensen.EditorExtensions
             if (project != null && !string.IsNullOrEmpty(project.FullName))
             {
                 var folder = ProjectHelpers.GetRootFolder(project);
-                var sourceFiles = Extensions.SelectMany(e => Directory.EnumerateFiles(folder, "*." + e, SearchOption.AllDirectories));
+                var sourceFiles = Extensions
+                    .SelectMany(e => Directory.EnumerateFiles(folder, "*" + e, SearchOption.AllDirectories))
+                    .Where(f => !_ignorePaths.Contains(f.ToLowerInvariant()));
 
                 await Compile(sourceFiles);
             }
@@ -32,12 +36,19 @@ namespace MadsKristensen.EditorExtensions
             return Task.WhenAll(sourceFiles.Select(async sourceFile =>
             {
                 string compiledFile = MarginBase.GetCompiledFileName(sourceFile, CompileToExtension, CompileToLocation);
+
+                if (!File.Exists(compiledFile))
+                    return;
+
                 var result = await Compiler.Compile(sourceFile, compiledFile);
+
+                if (result == null)
+                    return;
 
                 if (result.IsSuccess)
                     FileHelpers.WriteResult(result, compiledFile, CompileToExtension);
                 else
-                    Logger.Log(result.Error.Message ?? (String.Format(CultureInfo.CurrentCulture, "Error compiling {0} file: {1}", ServiceName, sourceFile)));
+                    Logger.Log(result.Errors.First().Message ?? (String.Format(CultureInfo.CurrentCulture, "Error compiling {0} file: {1}", ServiceName, sourceFile)));
             }));
         }
     }

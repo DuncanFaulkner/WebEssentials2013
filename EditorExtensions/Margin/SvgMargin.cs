@@ -8,12 +8,16 @@ namespace MadsKristensen.EditorExtensions
 {
     internal class SvgMargin : MarginBase
     {
-        public const string MarginName = "SvgMargin";
         private WebBrowser _browser;
         private string _fileName;
 
+        protected override bool CanWriteToDisk
+        {
+            get { return false; }
+        }
+
         public SvgMargin(string contentType, string source, bool showMargin, ITextDocument document)
-            : base(source, MarginName, contentType, showMargin, document)
+            : base(source, contentType, showMargin, document)
         {
             _fileName = document.FilePath;
         }
@@ -72,16 +76,6 @@ namespace MadsKristensen.EditorExtensions
         public override bool IsSaveFileEnabled
         {
             get { return false; }
-        }
-
-        protected override bool CanWriteToDisk(string source)
-        {
-            return false;
-        }
-
-        public override bool CompileEnabled
-        {
-            get { return true; }
         }
 
         public override string CompileToLocation

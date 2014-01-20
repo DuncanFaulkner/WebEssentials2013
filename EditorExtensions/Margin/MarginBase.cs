@@ -18,12 +18,16 @@ namespace MadsKristensen.EditorExtensions
     {
         private bool _isDisposed = false;
         private IWpfTextViewHost _viewHost;
-        private string _marginName;
-        protected string SettingsKey { get; private set; }
         private bool _showMargin;
-        protected bool IsFirstRun { get; private set; }
         private Dispatcher _dispatcher;
         private ErrorListProvider _provider;
+
+        protected string SettingsKey { get; private set; }
+        protected bool IsFirstRun { get; private set; }
+        public abstract bool IsSaveFileEnabled { get; }
+        public abstract string CompileToLocation { get; }
+        protected ITextDocument Document { get; set; }
+        protected virtual bool CanWriteToDisk { get { return true; } }
 
         protected MarginBase()
         {
@@ -31,12 +35,11 @@ namespace MadsKristensen.EditorExtensions
             IsFirstRun = true;
         }
 
-        protected MarginBase(string source, string name, string contentType, bool showMargin, ITextDocument document)
+        protected MarginBase(string source, string contentType, bool showMargin, ITextDocument document)
             : this()
         {
             Document = document;
-            _marginName = name;
-            SettingsKey = _marginName + "_width";
+            SettingsKey = GetType().Name + "_width";
             _showMargin = showMargin;
             _provider = new ErrorListProvider(EditorExtensionsPackage.Instance);
 
@@ -60,11 +63,6 @@ namespace MadsKristensen.EditorExtensions
                 }), DispatcherPriority.ApplicationIdle, null);
             }
         }
-
-        public abstract bool IsSaveFileEnabled { get; }
-        public abstract bool CompileEnabled { get; }
-        public abstract string CompileToLocation { get; }
-        protected ITextDocument Document { get; set; }
 
         private void Initialize(string contentType, string source)
         {
@@ -234,6 +232,9 @@ namespace MadsKristensen.EditorExtensions
                 case ".less":
                     return GetCompiledFileName(sourceFileName, ".css", CompileToLocation);
 
+                case ".scss":
+                    return GetCompiledFileName(sourceFileName, ".css", CompileToLocation);
+
                 case ".coffee":
                 case ".iced":
                 case ".ts":
@@ -245,6 +246,7 @@ namespace MadsKristensen.EditorExtensions
                 case ".mkd":
                 case ".mkdn":
                 case ".mdwn":
+                case ".mmd":
                     return GetCompiledFileName(sourceFileName, ".html", CompileToLocation);
 
                 default: // For the Diff view
@@ -256,9 +258,8 @@ namespace MadsKristensen.EditorExtensions
 
         private void WriteCompiledFile(string content, string currentFileName, string fileName)
         {
-            if (!File.Exists(fileName)
-             && ProjectHelpers.CheckOutFileFromSourceControl(fileName)
-             && CanWriteToDisk(content)
+            if (ProjectHelpers.CheckOutFileFromSourceControl(fileName)
+             && CanWriteToDisk
              && FileHelpers.WriteFile(content, fileName))
             {
                 ProjectHelpers.AddFileToProject(currentFileName, fileName);
@@ -337,8 +338,6 @@ namespace MadsKristensen.EditorExtensions
             }
         }
 
-        protected abstract bool CanWriteToDisk(string source);
-
         private void ThrowIfDisposed()
         {
             if (_isDisposed)
@@ -394,7 +393,7 @@ namespace MadsKristensen.EditorExtensions
         /// <returns>An instance of EditorMargin1 or null</returns>
         public ITextViewMargin GetTextViewMargin(string marginName)
         {
-            return (marginName == this._marginName) ? (IWpfTextViewMargin)this : null;
+            return (marginName == GetType().Name) ? (IWpfTextViewMargin)this : null;
         }
 
         public void Dispose()

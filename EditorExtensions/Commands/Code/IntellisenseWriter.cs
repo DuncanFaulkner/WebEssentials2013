@@ -50,9 +50,18 @@ namespace MadsKristensen.EditorExtensions
             return name[0].ToString(CultureInfo.CurrentCulture).ToLower(CultureInfo.CurrentCulture) + name.Substring(1);
         }
 
+        private static string CleanEnumInitValue(string value)
+        {
+            value = value.TrimEnd('u', 'U', 'l', 'L'); //uint ulong long
+            if (value.StartsWith("0x", StringComparison.OrdinalIgnoreCase)) return value;
+            var trimedValue = value.TrimStart('0'); // prevent numbers to be parsed as octal in js.
+            if (trimedValue.Length > 0) return trimedValue;
+            return "0";
+        }
+
         private static readonly Regex whitespaceTrimmer = new Regex(@"^\s+|\s+$|\s*[\r\n]+\s*", RegexOptions.Compiled);
 
-        private static void WriteJavaScript(IEnumerable<IntellisenseObject> objects, StringBuilder sb)
+        internal static void WriteJavaScript(IEnumerable<IntellisenseObject> objects, StringBuilder sb)
         {
             sb.AppendLine("var server = server || {};");
 
@@ -63,7 +72,7 @@ namespace MadsKristensen.EditorExtensions
                 string comment = io.Summary ?? "The " + io.Name + " class as defined in " + io.FullName;
                 comment = whitespaceTrimmer.Replace(comment, " ");
                 sb.AppendLine("/// <summary>" + SecurityElement.Escape(comment) + "</summary>");
-                sb.AppendLine("server." + CamelCaseClassName(io.Name) + " = function()  {");
+                sb.AppendLine("server." + CamelCaseClassName(io.Name) + " = function() {");
 
                 foreach (var p in io.Properties)
                 {
@@ -81,7 +90,7 @@ namespace MadsKristensen.EditorExtensions
             }
         }
 
-        private static void WriteTypeScript(IEnumerable<IntellisenseObject> objects, StringBuilder sb)
+        internal static void WriteTypeScript(IEnumerable<IntellisenseObject> objects, StringBuilder sb)
         {
             foreach (var ns in objects.GroupBy(o => o.Namespace))
             {
@@ -97,7 +106,14 @@ namespace MadsKristensen.EditorExtensions
                         foreach (var p in io.Properties)
                         {
                             WriteTypeScriptComment(p, sb);
-                            sb.AppendLine("\t\t" + CamelCasePropertyName(p.Name) + ",");
+                            if (p.InitExpression != null)
+                            {
+                                sb.AppendLine("\t\t" + CamelCasePropertyName(p.Name) + " = " + CleanEnumInitValue(p.InitExpression) + ",");
+                            }
+                            else
+                            {
+                                sb.AppendLine("\t\t" + CamelCasePropertyName(p.Name) + ",");
+                            }
                         }
                         sb.AppendLine("\t}");
                     }

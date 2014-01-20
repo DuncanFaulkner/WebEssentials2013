@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using FluentAssertions;
 using MadsKristensen.EditorExtensions;
@@ -15,8 +15,6 @@ namespace WebEssentialsTests
     {
         private static string originalPath;
         private static readonly string BaseDirectory = Path.GetDirectoryName(typeof(NodeModuleImportedTests).Assembly.Location);
-        private static readonly Regex _endingCurlyBraces = new Regex(@"}\W*}|}", RegexOptions.Compiled);
-        private static readonly Regex _linesStartingWithTwoSpaces = new Regex("(\n( *))", RegexOptions.Compiled);
 
         #region Helper Methods
         private static async Task<string> CompileLess(string fileName, string targetFileName)
@@ -25,14 +23,13 @@ namespace WebEssentialsTests
 
             if (result.IsSuccess)
             {
-                // Insert extra line-breaks between adjecent rule (to mimic the compiler's post-processing)
-                File.WriteAllText(targetFileName, _endingCurlyBraces.Replace(_linesStartingWithTwoSpaces.Replace(File.ReadAllText(targetFileName).Trim(), "$1$2"), "$&\n"));
+                File.WriteAllText(targetFileName, File.ReadAllText(targetFileName).Trim());
 
                 return result.Result;
             }
             else
             {
-                throw new ExternalException(result.Error.Message);
+                throw new ExternalException(result.Errors.First().Message);
             }
         }
         #endregion
@@ -62,7 +59,7 @@ namespace WebEssentialsTests
                 var expected = File.ReadAllText(compiledFile)
                                .Replace("\r", "");
 
-                compiled.Should().Be(expected.Trim());
+                compiled.Trim().Should().Be(expected.Trim());
             }
         }
 

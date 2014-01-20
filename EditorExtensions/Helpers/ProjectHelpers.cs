@@ -24,7 +24,7 @@ namespace MadsKristensen.EditorExtensions
         }
         private static IEnumerable<Project> GetChildProjects(Project parent)
         {
-            if (parent.Collection == null)  // Unloaded
+            if (parent.Kind !=  ProjectKinds.vsProjectKindSolutionFolder && parent.Collection == null)  // Unloaded
                 return Enumerable.Empty<Project>();
 
             if (!String.IsNullOrEmpty(parent.FullName))
@@ -171,7 +171,7 @@ namespace MadsKristensen.EditorExtensions
         }
 
         ///<summary>Converts a relative URL to an absolute path on disk, as resolved from the specified file.</summary>
-        public static string ToAbsoluteFilePath(string relativeUrl, ProjectItem file)
+        private static string ToAbsoluteFilePath(string relativeUrl, ProjectItem file)
         {
             var baseFolder = file.Properties == null ? null : Path.GetDirectoryName(file.Properties.Item("FullPath").Value.ToString());
             return ToAbsoluteFilePath(relativeUrl, GetProjectFolder(file), baseFolder);
@@ -390,10 +390,11 @@ namespace MadsKristensen.EditorExtensions
         {
             var doc = EditorExtensionsPackage.DTE.ActiveDocument;
 
-            if (doc != null)
-            {
+            if (doc == null)
+                return null;
+
+            if (GetProjectFolder(doc.ProjectItem) != null)
                 return doc.ProjectItem;
-            }
 
             return null;
         }
@@ -416,19 +417,42 @@ namespace MadsKristensen.EditorExtensions
         {
             if (!File.Exists(fileName))
                 return null;
+            fileName = Path.GetFullPath(fileName);  // WAP projects don't like paths with forward slashes
 
             var item = ProjectHelpers.GetProjectItem(parentFileName);
 
-            if (item != null && item.ContainingProject != null && !string.IsNullOrEmpty(item.ContainingProject.FullName))
+            if (item == null || item.ContainingProject == null || string.IsNullOrEmpty(item.ContainingProject.FullName))
+                return null;
+
+            if (item.ContainingProject.GetType().Name == "OAProject" && item.ProjectItems != null)
             {
-                if (item.ContainingProject.GetType().Name != "OAProject" && item.ProjectItems != null && Path.GetDirectoryName(parentFileName) == Path.GetDirectoryName(fileName))
-                {   // WAP
-                    return item.ProjectItems.AddFromFile(fileName);
+                // WinJS
+                var currentItem = ProjectHelpers.GetProjectItem(fileName);
+                // check if the file already added ( adding second time fails with ADDRESULT_Cancel )
+                if (currentItem != null && currentItem.Kind != Guid.Empty.ToString("B")) return currentItem;
+
+                item = ProjectHelpers.GetProjectItem(fileName);
+                if (item == null)
+                    return null;
+
+                var addedItem = item.ProjectItems.AddFromFile(fileName);
+
+                if (Path.GetDirectoryName(parentFileName) == Path.GetDirectoryName(fileName))
+                {
+                    // create nesting
+                    var dependentUponProperty = addedItem.Properties.Item("DependentUpon");
+                    dependentUponProperty.Value = Path.GetFileName(parentFileName);
                 }
-                else if (Path.GetFullPath(fileName).StartsWith(GetRootFolder(item.ContainingProject), StringComparison.OrdinalIgnoreCase))
-                {   // Website
-                    return item.ContainingProject.ProjectItems.AddFromFile(fileName);
-                }
+
+                return addedItem;
+            }
+            else if (item.ContainingProject.GetType().Name != "OAProject" && item.ProjectItems != null && Path.GetDirectoryName(parentFileName) == Path.GetDirectoryName(fileName))
+            {   // WAP
+                return item.ProjectItems.AddFromFile(fileName);
+            }
+            else if (Path.GetFullPath(fileName).StartsWith(GetRootFolder(item.ContainingProject), StringComparison.OrdinalIgnoreCase))
+            {   // Website
+                return item.ContainingProject.ProjectItems.AddFromFile(fileName);
             }
 
             return null;

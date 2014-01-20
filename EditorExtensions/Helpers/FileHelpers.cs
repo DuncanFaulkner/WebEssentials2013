@@ -146,9 +146,26 @@ namespace MadsKristensen.EditorExtensions
             }
         }
 
+        public static bool SaveDataUriToFile(string dataUri, string filePath)
+        {
+            try
+            {
+                int index = dataUri.IndexOf("base64,", StringComparison.Ordinal) + 7;
+                byte[] imageBytes = Convert.FromBase64String(dataUri.Substring(index));
+                File.WriteAllBytes(filePath, imageBytes);
+                ProjectHelpers.AddFileToActiveProject(filePath);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.ShowMessage(ex.Message, "Web Essentials " + ex.GetType().Name, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+        }
+
         public static string GetMimeTypeFromBase64(string base64)
         {
-            int end = base64.IndexOf(";", StringComparison.Ordinal);
+            int end = base64.IndexOf(';');
 
             if (end > -1)
             {
@@ -239,27 +256,6 @@ namespace MadsKristensen.EditorExtensions
             find.MatchWholeWord = matchWord;
         }
 
-        internal static bool CanCompile(string fileName, string compileToExtension)
-        {
-            if (ProjectHelpers.GetProjectItem(fileName) == null)
-                return false;
-
-            if (Path.GetFileName(fileName).StartsWith("_", StringComparison.Ordinal))
-                return false;
-
-            string minFile = MarginBase.GetCompiledFileName(fileName, ".min" + compileToExtension, WESettings.GetString(WESettings.Keys.CoffeeScriptCompileToLocation));
-
-            if (File.Exists(minFile) && WESettings.GetBoolean(WESettings.Keys.CoffeeScriptMinify))
-                return true;
-
-            string jsFile = MarginBase.GetCompiledFileName(fileName, compileToExtension, WESettings.GetString(WESettings.Keys.CoffeeScriptCompileToLocation));
-
-            if (!File.Exists(jsFile))
-                return false;
-
-            return true;
-        }
-
         internal static void WriteResult(CompilerResult result, string compileToFileName, string compileToExtension)
         {
             MinifyFile(result.FileName, result.Result, compileToExtension);
@@ -289,25 +285,22 @@ namespace MadsKristensen.EditorExtensions
 
         internal static void MinifyFile(string sourceFileName, string source, string compileToExtension)
         {
-            if (WESettings.GetBoolean(WESettings.Keys.CoffeeScriptMinify))
+            string content = MinifyFileMenu.MinifyString(compileToExtension, source);
+            string minFile = MarginBase.GetCompiledFileName(sourceFileName, ".min" + compileToExtension, Path.GetDirectoryName(sourceFileName));
+            bool fileExist = File.Exists(minFile);
+            string old = fileExist ? File.ReadAllText(minFile) : string.Empty;
+
+            if (old != content)
             {
-                string content = MinifyFileMenu.MinifyString(compileToExtension, source);
-                string minFile = MarginBase.GetCompiledFileName(sourceFileName, ".min" + compileToExtension, WESettings.GetString(WESettings.Keys.CoffeeScriptCompileToLocation));
-                bool fileExist = File.Exists(minFile);
-                string old = fileExist ? File.ReadAllText(minFile) : string.Empty;
+                ProjectHelpers.CheckOutFileFromSourceControl(minFile);
 
-                if (old != content)
+                using (StreamWriter writer = new StreamWriter(minFile, false, new UTF8Encoding(true)))
                 {
-                    ProjectHelpers.CheckOutFileFromSourceControl(minFile);
-
-                    using (StreamWriter writer = new StreamWriter(minFile, false, new UTF8Encoding(true)))
-                    {
-                        writer.Write(content);
-                    }
-
-                    if (!fileExist)
-                        ProjectHelpers.AddFileToProject(sourceFileName, minFile);
+                    writer.Write(content);
                 }
+
+                if (!fileExist)
+                    ProjectHelpers.AddFileToProject(sourceFileName, minFile);
             }
         }
 

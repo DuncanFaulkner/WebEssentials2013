@@ -3,11 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Web.Script.Serialization;
-using System.Windows.Threading;
 using EnvDTE;
-using MadsKristensen.EditorExtensions.Commands.JavaScript;
-using MadsKristensen.EditorExtensions.Helpers;
 using Microsoft.VisualStudio.Shell;
 
 namespace MadsKristensen.EditorExtensions
@@ -53,30 +49,29 @@ namespace MadsKristensen.EditorExtensions
             }
         }
 
-        public void RunCompiler()
+        public async void RunCompiler()
         {
             if (_isDisposed)
                 return;
+
             if (ShouldIgnore(_fileName))
             {
                 // In case this file was added to JSHintIgnore after it was opened, clear the existing errors.
                 _provider.Tasks.Clear();
                 return;
             }
+
             EditorExtensionsPackage.DTE.StatusBar.Text = "Web Essentials: Running JSHint...";
-            JsHintCompiler lint = new JsHintCompiler(Dispatcher.CurrentDispatcher);
 
-            System.Threading.Tasks.Task.Run(() =>
-            {
-                using (StreamReader reader = new StreamReader(_fileName))
-                {
-                    string content = reader.ReadToEnd();
+            CompilerResult result = await new JsHintCompiler().Check(_fileName);
 
-                    lint.Completed += LintCompletedHandler;
-                    lint.Compile(content, _fileName);
-                }
-            });
+            EditorExtensionsPackage.DTE.StatusBar.Clear();
+
+            // Hack to select result from Error: 
+            // See https://github.com/madskristensen/WebEssentials2013/issues/392#issuecomment-31566419
+            ReadResult(result.Errors);
         }
+
 
         public static void Reset()
         {
@@ -89,8 +84,6 @@ namespace MadsKristensen.EditorExtensions
             _providers.Clear();
         }
 
-        private static FileCache<JsHintIgnoreList> ignoreListCache = new FileCache<JsHintIgnoreList>(JsHintIgnoreList.Load);
-
         public static bool ShouldIgnore(string file)
         {
             if (!Path.GetExtension(file).Equals(".js", StringComparison.OrdinalIgnoreCase) ||
@@ -98,64 +91,23 @@ namespace MadsKristensen.EditorExtensions
                 file.EndsWith(".debug.js", StringComparison.OrdinalIgnoreCase) ||
                 file.EndsWith(".intellisense.js", StringComparison.OrdinalIgnoreCase) ||
                 file.Contains("-vsdoc.js") ||
-                !File.Exists(file) ||
-                ProjectHelpers.GetProjectItem(file) == null)
+                !File.Exists(file))
             {
                 return true;
             }
 
-            var ignoreFile = FindLocalIgnore(file);
-            if (ignoreFile != null && ignoreListCache.Get(ignoreFile).IsIgnored(file))
+            ProjectItem item = ProjectHelpers.GetProjectItem(file);
+
+            if (item == null)
+                return true;
+
+            // Ignore files nested under other files such as bundle or TypeScript output
+            ProjectItem parent = item.Collection.Parent as ProjectItem;
+            if (parent != null && !Directory.Exists(parent.FileNames[1]) || File.Exists(item.FileNames[1] + ".bundle"))
                 return true;
 
             string name = Path.GetFileName(file);
-            return MustIgnore(name);
-        }
-
-        private static string FindLocalIgnore(string sourcePath)
-        {
-            string dir = Path.GetDirectoryName(sourcePath);
-            while (!File.Exists(Path.Combine(dir, ".jshintignore")))
-            {
-                dir = Path.GetDirectoryName(dir);
-                if (String.IsNullOrEmpty(dir))
-                    return null;
-            }
-            return Path.Combine(dir, ".jshintignore");
-        }
-
-
-        private static bool MustIgnore(string name)
-        {
-            if (_builtInIgnoreRegex.IsMatch(name))
-                return true;
-
-            if (_parsedUserIgnoreList != WESettings.GetString(WESettings.Keys.JsHint_ignoreFiles))
-                ParseUserIgnoreList();
-
-            return _userIgnoreRegexes.Any(r => r.IsMatch(name));
-        }
-
-        static string _parsedUserIgnoreList;
-        static IReadOnlyCollection<Regex> _userIgnoreRegexes = new Regex[0];
-        static void ParseUserIgnoreList()
-        {
-            _parsedUserIgnoreList = WESettings.GetString(WESettings.Keys.JsHint_ignoreFiles);
-            _userIgnoreRegexes = _parsedUserIgnoreList.Split(';')
-                .Select(s =>
-            {
-                s = s.Trim();
-                if (s.Length == 0) return null;
-                try
-                {
-                    return new Regex(s, RegexOptions.IgnoreCase);
-                }
-                catch (Exception ex)
-                {
-                    Logger.ShowMessage("Skipping invalid regex '" + s + "' in JSHint ignore patterns.\nPlease fix that in Web Essentials Options.\n\n" + ex.Message);
-                    return null;
-                }
-            }).Where(r => r != null).ToList();
+            return _builtInIgnoreRegex.IsMatch(name);
         }
 
         private static Regex _builtInIgnoreRegex = new Regex("(" + String.Join(")|(", new[] {
@@ -183,6 +135,7 @@ namespace MadsKristensen.EditorExtensions
             @"prototype\.js ",
             @"qunit-([0-9a-z\.]+)\.js",
             @"require\.js",
+            @"respond\.js",
             @"sammy\.js",
             @"scriptaculous\.js ",
             @"swfobject\.js",
@@ -192,37 +145,19 @@ namespace MadsKristensen.EditorExtensions
             @"zepto\.js",
         }) + ")", RegexOptions.IgnoreCase);
 
-        private void LintCompletedHandler(object sender, CompilerEventArgs e)
+        private void ReadResult(IEnumerable<CompilerError> results)
         {
-            using (JsHintCompiler lint = (JsHintCompiler)sender)
-            {
-                if (!_isDisposed)
-                {
-                    System.Threading.Tasks.Task.Run(() =>
-                    {
-                        ReadResult(e);
-                    });
-                }
+            if (results == null)
+                return;
 
-                lint.Completed -= LintCompletedHandler;
-            }
-
-            EditorExtensionsPackage.DTE.StatusBar.Clear();
-        }
-
-        private void ReadResult(CompilerEventArgs e)
-        {
             try
             {
-                JavaScriptSerializer serializer = new JavaScriptSerializer();
-                Result[] results = serializer.Deserialize<Result[]>(e.Result);
-
                 _provider.SuspendRefresh();
                 _provider.Tasks.Clear();
 
-                foreach (Result error in results.Where(r => r != null))
+                foreach (CompilerError error in results.Where(r => r != null))
                 {
-                    ErrorTask task = CreateTask(e.State, error);
+                    ErrorTask task = CreateTask(error);
                     _provider.Tasks.Add(task);
                 }
 
@@ -238,17 +173,17 @@ namespace MadsKristensen.EditorExtensions
             }
         }
 
-        private ErrorTask CreateTask(string data, Result error)
+        private ErrorTask CreateTask(CompilerError error)
         {
             ErrorTask task = new ErrorTask()
             {
-                Line = error.line,
-                Column = error.character,
+                Line = error.Line,
+                Column = error.Column,
                 ErrorCategory = GetOutputLocation(),
                 Category = TaskCategory.Html,
-                Document = data,
+                Document = error.FileName,
                 Priority = TaskPriority.Low,
-                Text = GetErrorMessage(error),
+                Text = error.Message,
             };
 
             task.AddHierarchyItem();
@@ -268,15 +203,6 @@ namespace MadsKristensen.EditorExtensions
                 return TaskErrorCategory.Warning;
 
             return TaskErrorCategory.Message;
-        }
-
-        private static string GetErrorMessage(Result error)
-        {
-            string raw = error.raw;
-            if (raw == "Missing radix parameter.")
-                raw = "When using the parseInt function, remember to specify the radix parameter. Example: parseInt('3', 10)";
-
-            return "JSHint (r10): " + raw.Replace("{a}", error.a).Replace("{b}", error.b);
         }
 
         private void task_Navigate(object sender, EventArgs e)

@@ -15,35 +15,18 @@ namespace MadsKristensen.EditorExtensions
 {
     internal class MarkdownMargin : MarginBase
     {
-        public const string MarginName = "MarkdownMargin";
         private Markdown _compiler;
         private WebBrowser _browser;
         private const string _stylesheet = "WE-Markdown.css";
 
         public MarkdownMargin(string contentType, string source, bool showMargin, ITextDocument document)
-            : base(source, MarginName, contentType, showMargin, document)
-        {
-        }
-
-        private void InitializeCompiler()
-        {
-            if (_compiler == null)
-            {
-                MarkdownSharp.MarkdownOptions options = new MarkdownSharp.MarkdownOptions();
-                options.AutoHyperlink = AutoHyperlinks;
-                options.LinkEmails = LinkEmails;
-                options.AutoNewLines = AutoNewLines;
-                options.EmptyElementSuffix = GenerateXHTML ? "/>" : ">";
-                options.EncodeProblemUrlCharacters = EncodeProblemUrlCharacters;
-                options.StrictBoldItalic = StrictBoldItalic;
-
-                _compiler = new Markdown(options);
-            }
-        }
+            : base(source, contentType, showMargin, document)
+        { }
 
         protected override void StartCompiler(string source)
         {
-            InitializeCompiler();
+            if (_compiler == null)
+                _compiler = CreateCompiler();
 
             string result = _compiler.Transform(source);
 
@@ -65,10 +48,23 @@ namespace MadsKristensen.EditorExtensions
             // NOTE: Markdown files are always compiled for the Preview window.
             //       But, only saved to disk when the CompileEnabled flag is true.
             //       That is why the following if statement is not wrapping this whole method.
-            if (CompileEnabled)
+            if (IsSaveFileEnabled)
             {
                 OnCompilationDone(result.Trim(), Document.FilePath);
             }
+        }
+
+        public static Markdown CreateCompiler()
+        {
+            MarkdownSharp.MarkdownOptions options = new MarkdownSharp.MarkdownOptions();
+            options.AutoHyperlink = AutoHyperlinks;
+            options.LinkEmails = LinkEmails;
+            options.AutoNewLines = AutoNewLines;
+            options.EmptyElementSuffix = GenerateXHTML ? "/>" : ">";
+            options.EncodeProblemUrlCharacters = EncodeProblemUrlCharacters;
+            options.StrictBoldItalic = StrictBoldItalic;
+
+            return new Markdown(options);
         }
 
         public static string GetStylesheet()
@@ -152,20 +148,14 @@ namespace MadsKristensen.EditorExtensions
 
         protected override void MinifyFile(string fileName, string source)
         {
-            // Nothing to minify
+            if (WESettings.GetBoolean(WESettings.Keys.EnableHtmlMinification)
+                && File.Exists(Path.ChangeExtension(fileName, ".min.html")))
+            {
+                FileHelpers.MinifyFile(fileName, source, ".html");
+            }
         }
 
         public override bool IsSaveFileEnabled
-        {
-            get { return true; }
-        }
-
-        protected override bool CanWriteToDisk(string source)
-        {
-            return true;
-        }
-
-        public override bool CompileEnabled
         {
             get { return WESettings.GetBoolean(WESettings.Keys.MarkdownEnableCompiler); }
         }

@@ -17,7 +17,7 @@ namespace MadsKristensen.EditorExtensions
                     AddIcon(classes, "CoffeeScript.ico", ".iced");
 
                     // Markdown
-                    AddIcon(classes, "Markdown.ico", ".md", ".mdown", ".markdown", ".mkd", ".mkdn", ".mdwn");
+                    AddIcon(classes, "Markdown.ico", ".md", ".mdown", ".markdown", ".mkd", ".mkdn", ".mdwn", ".mmd");
 
                     // WebVTT
                     AddIcon(classes, "WebVTT.ico", ".vtt");
@@ -32,7 +32,10 @@ namespace MadsKristensen.EditorExtensions
                     AddIcon(classes, "Git.ico", ".gitignore", ".gitattributes");
 
                     // Generic script
-                    AddIcon(classes, "GenericScript.ico", ".appcache");
+                    AddIcon(classes, "GenericScript.ico", ".appcache", ".jshintrc", ".jshintignore", ".tslintrc");
+
+                    // Jigsaw
+                    AddIcon(classes, "Jigsaw.ico", ".sprite");
                 }
             }
         }
